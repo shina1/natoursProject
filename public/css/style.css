@@ -20,6 +20,10 @@
   -webkit-box-sizing: inherit;
   box-sizing: inherit;
 }
+/* img {
+  width: 100%;
+  height: auto;
+} */
 
 html {
   font-size: 62.5%;
