@@ -9,11 +9,11 @@ const toursData = JSON.parse(
 
 const Router = express.Router();
 
-Router.param('id', tourController.checkId);
+// Router.param('id', tourController.checkId);
 
 Router.route('/')
   .get(tourController.getAllTours)
-  .post(tourController.checkBody, tourController.createTuors);
+  .post(tourController.createTuors);
 
 Router.route('/:id')
   .get(tourController.getTourById)
