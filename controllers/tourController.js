@@ -8,8 +8,8 @@ const Tour = require('./../Model/tourModel');
 // route handlers for tours
 exports.getAllTours =async (req, res) => {
 try {
+  console.log(req.query);
   const toursData = await Tour.find();
-
   res.status(200).json({
     status: 'success',
     results: toursData.length,
@@ -70,7 +70,7 @@ exports.getTourById = async(req, res) => {
 
 exports.updateTour = async  (req, res) => {
   try {
-    const toursUpdate = Tours.findByIdAndUpdate(req.params.id, req.body,{
+    const toursUpdate = Tour.findByIdAndUpdate(req.params.id, req.body,{
      new: true,
      runValidators:true
     })
@@ -91,8 +91,8 @@ exports.updateTour = async  (req, res) => {
 
 exports.deleteTour = async(req, res) => {
 try {
-  console.log(req.params.body)
-  const tourDelete = await Tours.findByIdAndDelete(req.params.id);
+ 
+  const tourDelete = await Tour.findByIdAndDelete(req.params.id);
   res.status(204).json({
     status: 'success',
     data: null,
