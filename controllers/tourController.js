@@ -1,75 +1,25 @@
 const Tour = require('./../Model/tourModel');
+const APIFeatures = require('./../utils/apiFeatures');
 
 // ---------------------creating the route-----------------------
 // const toursData = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 // );
 // middle ware for handling alias in the api
-exports.aliasTopTour = (req,res,next)=>{
+exports.aliasCheapTour = (req,res,next)=>{
   req.query.limit = '5';
   req.query.sort = '-ratingsAverage';
   req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
   next();
 }
-
-class APIFeatures{
-    constructor(query, queryString){
-      this.query = query;
-      this.queryString = queryString;
-      // note that the req.query is the same with queryString
-    }
-
-  filter(){
-     // 1a) Filtering
-      const queryObj = {...this.queryString};
-      // we exclude the el in the array below so as not to affect our filtering API
-      const excludedFields = ['page','sort','limit','fields'];
-      excludedFields.forEach(el => delete queryObj[el]);
-      // 1b) Advanced Filtering
-      let queryStr = JSON.stringify(queryObj);
-      queryStr = queryStr.replace(/\b(gte|gt|lte|le)\b/g, match=>`$${match}`)
-      this.query.find(JSON.parse(queryStr));
-      return this;
-  
-  }
-  sort(){
-    //  2) Sorting
-    if(this.queryString.sort){
-      const sortBy = this.queryString.sort.split(",").join(" ");
-      this.query = this.query.sort(sortBy);
-    }else{
-      this.query = this.query.sort('-createdAt');
-    }
-    return this;
-  }
-
-  limitFields(){
-    // 3) field limiting
-    if(this.queryString.fields){
-      const fields = this.queryString.fields.split(",").join(" ");
-      console.log(fields);
-      this.query = this.query.select(fields);
-    }else{
-      this.query = this.query.select('-__v')
-    }
-    return this;
-    }
-
-    paggination(){
-        // 4) Pagiation
-      const page = req.query.page * 1 || 1;
-      const limit = req.query.limit * 1 || 100;
-      const skip = (page - 1) * limit;
-
-      this.query = this.query.skip(skip).limit(limit);
-      if(req.query.page){
-        const numTours = await Tour.countDocuments();
-        if(skip >= numTours) throw new Error('This page does not exist');
-      }
-      return this;
-    }
-    
+exports.aliasTopTour = (req,res,next)=>{
+  req.query.limit = '5';
+  req.query.sort = '-price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty,images';
+  next();
 }
+
+
 
 // route handlers for tours 
 // i.e the handlers to perform all the crud operations
@@ -80,7 +30,7 @@ try {
  
 //  execute the query
 const features = new APIFeatures(Tour.find(), req.query).filter().sort().limitFields().paggination();
-  const toursData = await features.queryDB;
+  const toursData = await features.query;
   // send response
   res.status(200).json({
     status: 'success',
@@ -174,3 +124,80 @@ try {
   })
 }
 };
+
+// handler fuction for agregation pipeline
+// note this will retur a aggregate object
+exports.getTourStats = async (req, res)=>{
+try {
+  const stats = await Tour.aggregate([
+    {
+      $match: {
+        ratingsAverage: {$gte: 4.5}
+      }
+    },
+    {
+      $group: {
+        _id:{$toUpper: '$difficulty'},
+        numTours: {$sum: 1},
+        numRating : {$sum: '$ratingsAverage'},
+        avgRatings: { $avg:'$ratingsAverage'},
+        avgPrice : {$avg : '$price'},
+        minPrice: {$min: '$price'},
+        maxPrice: {$max:'$price'}
+      }
+    },
+    {
+      $sort:{
+        avgPrice: 1
+      }
+    },
+    // {
+    //   $match:{_id:{$ne: 'EASY'}}
+    // }
+  ]);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats
+    }
+  })
+} catch (err) {
+  res.status(404).json({
+    status: 'fail',
+    message: err
+  })
+}
+}
+
+exports.getMonthlyPlan = async (req, res)=>{
+  try {
+    const year = req.param.year * 1;
+    const plan = await Tour.aggregate([
+      {
+        $unwind: '$startDates'
+      },
+      {
+        $match:{
+          startDates: {
+            $gte:new Date(`${year}-01-01`), 
+            $lte:new Date(`${year}-12-31`), 
+            
+          }
+        }
+      },
+      
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data:{
+        plan
+      }
+    })
+  } catch (err) {
+    res.status(404).json({
+      status: 'failed',
+      message: err
+    })
+  }
+}

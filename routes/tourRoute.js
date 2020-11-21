@@ -10,7 +10,10 @@ const toursData = JSON.parse(
 const Router = express.Router();
 
 // Router.param('id', tourController.checkId);
-Router.route('/top-5-cheap').get(tourController.aliasTopTour, tourController.getAllTours); 
+Router.route('/top-5-cheap').get(tourController.aliasCheapTour, tourController.getAllTours); 
+Router.route('/top-5-exclusive').get(tourController.aliasTopTour, tourController.getAllTours);
+Router.route('/tour-stats').get(tourController.getTourStats);
+Router.route('/tour-monthly-plan/:year').get(tourController.getMonthlyPlan);
 
 Router.route('/')
   .get(tourController.getAllTours)
