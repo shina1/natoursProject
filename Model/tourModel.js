@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 // the tour schema
 const tourSchema = new mongoose.Schema({
@@ -8,6 +9,9 @@ const tourSchema = new mongoose.Schema({
     unique: true,
     trim:true
   },
+  
+   slug: String 
+  ,
   duration :{
     type: Number,
     required: [true, "A tour must have a duration"],
@@ -55,9 +59,37 @@ const tourSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
     select: false,
-  },
-  startDates: [Date],
+  }, 
+  startDates:[Date]
+},{
+  toJSON : {virtuals: true},
+  toObject : {virtual: true}
 });
+
+
+
+// virtual properties
+// These are properties/fields that are defined on the schema but ot persisted(saved to the database). 
+// They most suited for fields that can be derived from one another.
+tourSchema.virtual('durationWeeks').get(function(){
+  return this.duration / 7;
+})
+// mongoose document middleware: runs before the .save() command and the .create() command but not on .insertMany
+tourSchema.pre('save', function(next){
+this.slug = slugify(this.name, {lower:true});
+next();
+});
+
+// a post document meddileware
+// note that we no longer have the 'this' keyword bercause the documnet has already been saved to the database.
+// tourSchema.post('save', function(doc,next){
+// console.log(doc);
+// next();
+// });
+
+
+
+
 // the tour model
 const Tour = mongoose.model('Tour', tourSchema);
 

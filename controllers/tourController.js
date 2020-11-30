@@ -1,3 +1,4 @@
+const { aggregate } = require('./../Model/tourModel');
 const Tour = require('./../Model/tourModel');
 const APIFeatures = require('./../utils/apiFeatures');
 
@@ -127,51 +128,11 @@ try {
 
 // handler fuction for agregation pipeline
 // note this will retur a aggregate object
-exports.getTourStats = async (req, res)=>{
-try {
-  const stats = await Tour.aggregate([
-    {
-      $match: {
-        ratingsAverage: {$gte: 4.5}
-      }
-    },
-    {
-      $group: {
-        _id:{$toUpper: '$difficulty'},
-        numTours: {$sum: 1},
-        numRating : {$sum: '$ratingsAverage'},
-        avgRatings: { $avg:'$ratingsAverage'},
-        avgPrice : {$avg : '$price'},
-        minPrice: {$min: '$price'},
-        maxPrice: {$max:'$price'}
-      }
-    },
-    {
-      $sort:{
-        avgPrice: 1
-      }
-    },
-    // {
-    //   $match:{_id:{$ne: 'EASY'}}
-    // }
-  ]);
-  res.status(200).json({
-    status: 'success',
-    data: {
-      stats
-    }
-  })
-} catch (err) {
-  res.status(404).json({
-    status: 'fail',
-    message: err
-  })
-}
-}
+
 
 exports.getMonthlyPlan = async (req, res)=>{
   try {
-    const year = req.param.year * 1;
+    const year = req.params.year * 1;
     const plan = await Tour.aggregate([
       {
         $unwind: '$startDates'
@@ -185,6 +146,30 @@ exports.getMonthlyPlan = async (req, res)=>{
           }
         }
       },
+      {
+        $group:{
+          _id: {$month: '$startDates'},
+          numTours: {$sum : 1},
+          tours: {$push: '$name'},
+          price: {$sum:'$price'}
+        }
+      },
+      {
+        $addFields:{month:'$_id'}
+      },
+      {
+        $project:{
+          _id:0
+        }
+      },
+      {
+        $sort:{
+          numTours: -1
+        }
+      },
+      {
+        $limit : 12
+      }
       
     ]);
 
@@ -201,3 +186,79 @@ exports.getMonthlyPlan = async (req, res)=>{
     })
   }
 }
+
+// aggregation pipeline
+
+// exports.getTourStarts = async(req,res)=>{
+//   try{
+//     const stats = await Tour.aggregate([
+//       {
+//         $match: {ratingsAverage:{$gte: 4.5}}
+//       },
+//       {
+//         $group:{
+//           _id:null,
+//           avgRating: {$avg:'$ratingsAverage'},
+//           avgPrice: {$avg:'$price'},
+//           minPrice: {$min: '$price'},
+//           maxPrice: {$max: '$price'}
+//         }
+//       }
+//     ]);
+//     res.status(200).json({
+//       status:'success',
+//       data:{
+//         stats
+//       }
+//     })
+//   }
+//   catch (err){
+// res.status(404).json({
+//   status: 'fail',
+//   message: err
+// })
+//   }
+// }
+
+
+exports.getTourStats = async (req, res)=>{
+  try {
+    const stats = await Tour.aggregate([
+      {
+        $match: {
+          ratingsAverage: {$gte: 4.5}
+        }
+      },
+      {
+        $group: {
+          _id:{$toUpper: '$difficulty'},
+          numTours: {$sum: 1},
+          numRating : {$sum: '$ratingsAverage'},
+          avgRatings: { $avg:'$ratingsAverage'},
+          avgPrice : {$avg : '$price'},
+          minPrice: {$min: '$price'},
+          maxPrice: {$max:'$price'}
+        }
+      },
+      {
+        $sort:{
+          avgPrice: 1
+        }
+      }
+      
+    ]);
+    
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats
+      }
+    })
+  }
+   catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err
+    })
+  }
+  }

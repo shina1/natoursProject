@@ -15,6 +15,7 @@ Router.route('/top-5-exclusive').get(tourController.aliasTopTour, tourController
 Router.route('/tour-stats').get(tourController.getTourStats);
 Router.route('/tour-monthly-plan/:year').get(tourController.getMonthlyPlan);
 
+
 Router.route('/')
   .get(tourController.getAllTours)
   .post(tourController.createTuors);
