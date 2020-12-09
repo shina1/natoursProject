@@ -242,7 +242,7 @@ exports.getTourStats = async (req, res)=>{
       },
       {
         $sort:{
-          avgPrice: 1
+          avgPrice: 1 
         }
       }
       
