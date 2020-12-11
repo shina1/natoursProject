@@ -5,7 +5,11 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon server.js",
+<<<<<<< HEAD
     "start:prod": "SET NODE_ENV=production & nodemon ./bin/server.js",
+=======
+    "start:prod": "NODE_ENV=production nodemon server.js",
+>>>>>>> 95ee003c5fabd5d8ffdfe540907277b06bc2b0c4
     "debug": "ndb server.js"
   },
   "author": "wasiu shina",

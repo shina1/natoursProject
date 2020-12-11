@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const AppError = require('./../utils/appError');
 // note that these errors are those from mongoose in production mode.
 //  function for handling CastError from the database
@@ -68,3 +69,13 @@ module.exports = (err,req,res, next) => {
     sendErrProd(error, res);
   }
  };
+=======
+module.exports = (err, req,res, next) => {
+    err.statusCode = err.statusCode || 500;
+    err.status = err.status || 'error';
+   res.status(err.statusCode).json({
+     status: err.status,
+     message: err.message,
+   });
+ }
+>>>>>>> 95ee003c5fabd5d8ffdfe540907277b06bc2b0c4

@@ -49,6 +49,7 @@ const server = app.listen(port, () => {
   console.log(`app running on port ${port}`);
 });
 
+<<<<<<< HEAD
 process.on('unhandledRejection', err=>{
   console.log('UHANDLED REJECTION! shutting down...');
   console.log(`name: ${err.name}, message: ${err.message}`);
@@ -59,4 +60,6 @@ process.on('unhandledRejection', err=>{
   
 });
 
+=======
+>>>>>>> 95ee003c5fabd5d8ffdfe540907277b06bc2b0c4
 
